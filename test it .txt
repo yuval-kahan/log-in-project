@@ -1,0 +1,224 @@
+import tkinter as tk
+from tkinter import messagebox
+import webbrowser
+import os
+import mysql.connector
+from werkzeug.security import generate_password_hash, check_password_hash
+
+# Database Configuration
+DB_CONFIG = {
+    "host": "127.0.0.1",
+    "user": "root",
+    "password": "yuval1991",
+    "database": "userdb"
+}
+
+def save_credentials(username, password):
+    hashed_password = generate_password_hash(password, method='sha256')
+    try:
+        connection = mysql.connector.connect(**DB_CONFIG)
+        cursor = connection.cursor()
+        
+        # Check if username already exists
+        cursor.execute("SELECT * FROM users WHERE username=%s", (username,))
+        user = cursor.fetchone()
+        if user:
+            # Update the password if username already exists
+            cursor.execute("UPDATE users SET password=%s WHERE username=%s", (hashed_password, username))
+        else:
+            # Insert new user
+            cursor.execute("INSERT INTO users (username, password) VALUES (%s, %s)", (username, hashed_password))
+        
+        connection.commit()
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+    finally:
+        if connection:
+            cursor.close()
+            connection.close()
+
+def check_saved_credentials(username, password):
+    try:
+        connection = mysql.connector.connect(**DB_CONFIG)
+        cursor = connection.cursor()
+        
+        cursor.execute("SELECT password FROM users WHERE username=%s", (username,))
+        result = cursor.fetchone()
+        if result and check_password_hash(result[0], password):
+            return True
+        return False
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+        return False
+    finally:
+        if connection:
+            cursor.close()
+            connection.close()
+
+def check_saved_credentials(username, password):
+    try:
+        connection = mysql.connector.connect(**DB_CONFIG)
+        cursor = connection.cursor()
+        
+        cursor.execute("SELECT * FROM users WHERE username=%s AND password=%s", (username, password))
+        user = cursor.fetchone()
+        return bool(user)
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+        return False
+    finally:
+        if connection:
+            cursor.close()
+            connection.close()
+
+def register():
+    register_window = tk.Toplevel(login_window)
+    register_window.title("Register")
+
+    tk.Label(register_window, text="Username").pack(pady=10)
+    username_entry = tk.Entry(register_window)
+    username_entry.pack(pady=10)
+
+    tk.Label(register_window, text="Password").pack(pady=10)
+    password_entry = tk.Entry(register_window, show="*")
+    password_entry.pack(pady=10)
+
+    def submit():
+        username = username_entry.get()
+        password = password_entry.get()
+        if username and password:
+            save_credentials(username, password)
+            register_window.destroy()
+        else:
+            messagebox.showerror("Error", "Please fill out both fields!")
+
+    tk.Button(register_window, text="Submit", command=submit).pack(pady=20)
+
+def show_question_page():
+    question_window = tk.Toplevel(fpv1_window)
+    question_window.title("?PAGE")
+
+    instruction_label = tk.Label(question_window, text="To see the exact chrome.exe location, please search 'chrome.exe' on file explorer. When you find 'chrome.exe', hold shift and right-click the mouse and copy the file location.")
+    instruction_label.pack(pady=20)
+
+    back_button = tk.Button(question_window, text="Back", command=question_window.destroy)
+    back_button.pack(pady=20)
+
+def get_chrome_path_from_file():
+    path_file = "C:\\Users\\Yuval Kahan\\Downloads\\login app\\DATABASE\\path of the default browser.txt"
+    try:
+        with open(path_file, 'r') as file:
+            path = file.readline().strip()
+            return path if path else None
+    except FileNotFoundError:
+        return None
+
+def show_no_path_popup():
+    popup = tk.Toplevel(fpv1_window)
+    popup.title("pop-up-no-path")
+
+    tk.Label(popup, text="no path please press \"?\" button").pack(pady=20)
+
+    def go_back():
+        popup.destroy()
+
+    tk.Button(popup, text="Back", command=go_back).pack(pady=20)
+    popup.grab_set()  # This will block access to the FPV1 window until the popup is closed
+
+def login_v1():
+    global login_window, password_entry, username_entry, eye_button
+    login_window = tk.Tk()
+    login_window.title("Login_V_1")
+
+    def toggle_visibility():
+        if password_entry.cget("show") == "*":
+            password_entry.config(show="")
+            username_entry.config(show="")
+            eye_button.config(image=visible_eye_img)
+        else:
+            password_entry.config(show="*")
+            username_entry.config(show="*")
+            eye_button.config(image=hidden_eye_img)
+
+    def on_username_entry_return(event):
+        password_entry.focus_set()
+
+    def on_password_entry_return(event):
+        check_credentials()
+
+    username_label = tk.Label(login_window, text="Username")
+    username_label.pack(pady=10)
+    username_entry = tk.Entry(login_window, show="*")  # Initially hidden
+    username_entry.pack(pady=10)
+    username_entry.bind('<Return>', on_username_entry_return)
+
+    password_label = tk.Label(login_window, text="Password")
+    password_label.pack(pady=10)
+    password_entry = tk.Entry(login_window, show="*")
+    password_entry.pack(pady=10)
+    password_entry.bind('<Return>', on_password_entry_return)
+
+    hidden_eye_img = tk.PhotoImage(file="C:\\Users\\Yuval Kahan\\Downloads\\login app\\PNG\\non.png")
+    visible_eye_img = tk.PhotoImage(file="C:\\Users\\Yuval Kahan\\Downloads\\login app\\PNG\\noun-visibility-on-1513064.png")
+
+    eye_button = tk.Button(login_window, image=hidden_eye_img, command=toggle_visibility)
+    eye_button.pack(pady=10)
+
+    def check_credentials():
+        username = username_entry.get()
+        password = password_entry.get()
+        if not username or not password:
+            messagebox.showerror("Error", "Please enter username and password!")
+            return
+
+        if check_saved_credentials(username, password):
+            webbrowser.open("www.walla.co.il")
+        else:
+            messagebox.showerror("Error", "Incorrect username or password!")
+
+    login_button = tk.Button(login_window, text="Login", command=check_credentials)
+    login_button.pack(pady=20)
+
+    register_button = tk.Button(login_window, text="Register", command=register)
+    register_button.pack(pady=20)
+
+    login_window.mainloop()
+
+def fpv1():
+    global fpv1_window
+    fpv1_window = tk.Tk()
+    fpv1_window.title("FPV1")
+
+    instruction_label = tk.Label(fpv1_window, text="Please enter chrome.exe exact location:")
+    instruction_label.pack(pady=20)
+
+    chrome_path_entry = tk.Entry(fpv1_window, width=50)
+    chrome_path_entry.pack(pady=10)
+
+    chrome_path_from_file = get_chrome_path_from_file()
+    if chrome_path_from_file is None:
+        show_no_path_popup()
+    elif chrome_path_from_file:
+        chrome_path_entry.insert(0, chrome_path_from_file)
+
+    def proceed():
+        chrome_path = chrome_path_entry.get()
+        if not chrome_path:
+            messagebox.showerror("Error", "Error - no value in the field")
+            return
+        print(chrome_path)
+        fpv1_window.destroy()
+        login_v1()
+
+    proceed_button = tk.Button(fpv1_window, text="Proceed", command=proceed)
+    proceed_button.pack(pady=20)
+
+    help_text = tk.Label(fpv1_window, text="For more instructions, please press the '?' button")
+    help_text.pack(pady=10)
+
+    question_button = tk.Button(fpv1_window, text="?", command=show_question_page)
+    question_button.pack(pady=10)
+
+    fpv1_window.mainloop()
+
+fpv1()

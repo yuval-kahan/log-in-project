@@ -1,0 +1,11 @@
+import subprocess
+
+# Path to the PowerShell script
+ps_script_path = r"C:\Users\Yuval Kahan\Downloads\login app\DATABASE\power shell script Browsers.ps1"
+
+# Command to run the PowerShell script using PowerShell 7
+command = ["pwsh", "-ExecutionPolicy", "Bypass", "-File", ps_script_path]
+
+# Execute the command
+subprocess.run(command)
+

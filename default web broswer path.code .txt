@@ -1,0 +1,18 @@
+# Define the path to the input file and the output file
+$inputFilePath = "C:\Users\Yuval Kahan\Downloads\login app\DATABASE\default browser.txt"
+$outputFilePath = "C:\Users\Yuval Kahan\Downloads\login app\DATABASE\path of the default browser.txt"
+
+# Read the content of the input file
+$browserName = Get-Content -Path $inputFilePath
+
+# Get the default program for HTTP protocol
+$defaultBrowserProgId = (Get-ItemProperty 'HKCU:\Software\Microsoft\Windows\Shell\Associations\UrlAssociations\http\UserChoice').ProgId
+
+# Get the path of the default browser based on the ProgId
+$browserPath = (Get-ItemProperty -Path "Registry::HKEY_CLASSES_ROOT\$defaultBrowserProgId\shell\open\command").'(default)'
+
+# Extract the executable path from the command
+$browserExecutablePath = $browserPath -replace '(".+?").*', '$1'
+
+# Write the executable path to the output file
+$browserExecutablePath | Out-File -Path $outputFilePath

@@ -1,0 +1,2 @@
+modify it : 
+on "FPV1" page in the field   "please enter chrome.exe exact location"  put the text from file "default web browser path.txt" in path "C:\Users\Yuval Kahan\Downloads\login app\DATABASE\default web browser path.txt" if the "default web browser path.txt" is empty make a pop-up window  called "pop-up-no-path" that say "system didn't detect default browser path please enter path manually - for more instructors please press the "?" button" and make a "back" button that direct again to "FPV" page in the pop-up "pop-up-no-path" window
